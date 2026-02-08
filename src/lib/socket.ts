@@ -1,6 +1,7 @@
 import { io, Socket } from 'socket.io-client';
 
 let socket: Socket | null = null;
+let currentSocketUrl: string | null = null;
 
 // Get socket URL from API URL or environment variable
 const getSocketURL = (): string => {
@@ -18,14 +19,16 @@ const getSocketURL = (): string => {
 export const connectSocket = (token: string): Socket => {
   const SOCKET_URL = getSocketURL();
   
-  if (socket?.connected && socket.io.uri === SOCKET_URL) {
+  // If socket is connected and URL hasn't changed, reuse it
+  if (socket?.connected && currentSocketUrl === SOCKET_URL) {
     return socket;
   }
 
-  // Disconnect existing socket if URL changed
+  // Disconnect existing socket if URL changed or not connected
   if (socket) {
     socket.disconnect();
     socket = null;
+    currentSocketUrl = null;
   }
 
   socket = io(SOCKET_URL, {
@@ -36,6 +39,8 @@ export const connectSocket = (token: string): Socket => {
     reconnectionAttempts: 5,
     timeout: 20000,
   });
+
+  currentSocketUrl = SOCKET_URL;
 
   socket.on('connect', () => {
     console.log('Socket.io connected to:', SOCKET_URL);
@@ -56,6 +61,7 @@ export const disconnectSocket = () => {
   if (socket) {
     socket.disconnect();
     socket = null;
+    currentSocketUrl = null;
   }
 };
 

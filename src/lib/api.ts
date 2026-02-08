@@ -34,9 +34,9 @@ class ApiService {
   ): Promise<ApiResponse<T>> {
     try {
       const url = `${this.baseURL}${endpoint}`;
-      const headers: HeadersInit = {
+      const headers: Record<string, string> = {
         'Content-Type': 'application/json',
-        ...options.headers,
+        ...(options.headers as Record<string, string>),
       };
 
       if (this.token) {
@@ -45,7 +45,7 @@ class ApiService {
 
       const response = await fetch(url, {
         ...options,
-        headers,
+        headers: headers as HeadersInit,
       });
 
       const data = await response.json();
